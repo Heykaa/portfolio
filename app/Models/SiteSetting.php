@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Schema;
 
 class SiteSetting extends Model
 {
+    protected $table = 'site_settings';
+
     protected $fillable = [
         'brand_name',
         'hero_title',
@@ -24,37 +25,31 @@ class SiteSetting extends Model
         'social_links' => 'array',
     ];
 
+    /**
+     * Safe singleton accessor.
+     * - If table doesn't exist yet, return an in-memory default model (no DB hit).
+     * - If table exists, ensure there's always exactly 1 row (id=1).
+     */
     public static function instance(): self
     {
-        // If table not migrated yet, return in-memory defaults (avoid 500 during boot)
-        if (! Schema::hasTable('site_settings')) {
-            $model = new self();
-            $model->fill([
-                'brand_name' => 'Portfolio',
-                'hero_title' => 'Cinematic Portfolio',
-                'social_links' => [],
-            ]);
-            return $model;
-        }
+        $defaults = [
+            'brand_name' => 'Portfolio',
+            'hero_title' => 'Cinematic Portfolio',
+        ];
 
         try {
-            return self::query()->firstOrCreate(
-                [],
-                [
-                    'brand_name' => 'Portfolio',
-                    'hero_title' => 'Cinematic Portfolio',
-                    'social_links' => [],
-                ]
+            $model = new static;
+
+            if (!Schema::hasTable($model->getTable())) {
+                return new static($defaults);
+            }
+
+            return static::query()->firstOrCreate(
+                ['id' => 1],
+                $defaults
             );
-        } catch (QueryException) {
-            // Safety fallback
-            $model = new self();
-            $model->fill([
-                'brand_name' => 'Portfolio',
-                'hero_title' => 'Cinematic Portfolio',
-                'social_links' => [],
-            ]);
-            return $model;
+        } catch (\Throwable $e) {
+            return new static($defaults);
         }
     }
 }
