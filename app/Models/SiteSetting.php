@@ -24,19 +24,19 @@ class SiteSetting extends Model
     ];
 
     /**
-     * Get singleton SiteSetting safely (Render Free compatible)
+     * Get singleton SiteSetting safely (won't crash if table not migrated yet)
      */
     public static function instance(): self
     {
-        // 🔴 IMPORTANT: prevent crash if migration not run yet
+        // Prevent crash if migration not run yet
         if (! Schema::hasTable('site_settings')) {
             return new self([
-                'brand_name' => 'Portfolio's,
+                'brand_name' => 'Portfolio',
                 'hero_title' => 'Cinematic Portfolio',
             ]);
         }
 
-        return self::firstOrCreate([], [
+        return self::query()->firstOrCreate([], [
             'brand_name' => 'Portfolio',
             'hero_title' => 'Cinematic Portfolio',
         ]);
