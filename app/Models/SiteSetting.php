@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Schema;
 
 class SiteSetting extends Model
@@ -23,22 +24,37 @@ class SiteSetting extends Model
         'social_links' => 'array',
     ];
 
-    /**
-     * Get singleton SiteSetting safely (won't crash if table not migrated yet)
-     */
     public static function instance(): self
     {
-        // Prevent crash if migration not run yet
+        // If table not migrated yet, return in-memory defaults (avoid 500 during boot)
         if (! Schema::hasTable('site_settings')) {
-            return new self([
+            $model = new self();
+            $model->fill([
                 'brand_name' => 'Portfolio',
                 'hero_title' => 'Cinematic Portfolio',
+                'social_links' => [],
             ]);
+            return $model;
         }
 
-        return self::query()->firstOrCreate([], [
-            'brand_name' => 'Portfolio',
-            'hero_title' => 'Cinematic Portfolio',
-        ]);
+        try {
+            return self::query()->firstOrCreate(
+                [],
+                [
+                    'brand_name' => 'Portfolio',
+                    'hero_title' => 'Cinematic Portfolio',
+                    'social_links' => [],
+                ]
+            );
+        } catch (QueryException) {
+            // Safety fallback
+            $model = new self();
+            $model->fill([
+                'brand_name' => 'Portfolio',
+                'hero_title' => 'Cinematic Portfolio',
+                'social_links' => [],
+            ]);
+            return $model;
+        }
     }
 }
