@@ -7,19 +7,18 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
-# Make sure cache from old builds is not used
-php artisan optimize:clear || true
+php artisan config:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
+php artisan cache:clear || true
 
-# Run package discovery at runtime (since we used --no-scripts in build)
-php artisan package:discover --ansi || true
+# Run migration safely (Render free has no shell)
+php artisan migrate --force || true
 
-# Only run storage link if not exists
+# Storage link
 if [ ! -L public/storage ]; then
   php artisan storage:link || true
 fi
-
-# DO NOT generate APP_KEY here (use Render env)
-# DO NOT auto-migrate unless you really want it in prod
 
 php-fpm -D
 nginx -g "daemon off;"
