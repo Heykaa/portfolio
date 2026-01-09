@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class SiteSettingResource extends Resource
 {
@@ -16,7 +17,9 @@ class SiteSettingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Site Settings';
-    protected static ?string $navigationGroup = 'Settings';
+
+    // Filament v4 expects: UnitEnum|string|null
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {
