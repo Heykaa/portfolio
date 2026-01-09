@@ -3,23 +3,39 @@ set -e
 
 cd /var/www/html
 
-# Ensure env exists (Render injects env vars, so this is usually OK)
 php -v
 
-# Laravel prep
+# Make sure storage folders exist
+mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache || true
+
+# Ensure APP_KEY exists (Render env vars should provide this)
+if [ -z "$APP_KEY" ]; then
+  echo "APP_KEY is missing. Generating..."
+  php artisan key:generate --force
+fi
+
+# Clear any stale caches (safe in container)
 php artisan config:clear || true
 php artisan route:clear  || true
 php artisan view:clear   || true
 php artisan cache:clear  || true
 
-# Storage link (ignore if already exists)
+# Storage link
 php artisan storage:link || true
 
-# Permissions (Render sometimes mounts read-only parts; keep safe)
+# Run migrations automatically (optional, but usually needed on Render)
+php artisan migrate --force || true
+
+# Optimize caches for production (optional but recommended)
+php artisan config:cache || true
+php artisan route:cache  || true
+php artisan view:cache   || true
+
+# Permissions
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
-# Start PHP-FPM (port 9000)
+# Start PHP-FPM
 php-fpm -D
 
 # Start Nginx foreground
