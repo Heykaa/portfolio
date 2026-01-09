@@ -11,7 +11,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources
 COPY vite.config.js ./
-COPY tailwind.config.* postcss.config.* . 2>/dev/null || true
+COPY tailwind.config.js postcss.config.js ./
 RUN npm run build
 
 # ---------- 3) Final image ----------
@@ -40,3 +40,4 @@ RUN chmod +x /var/www/html/render/start.sh
 
 EXPOSE 8080
 CMD ["bash", "-lc", "/var/www/html/render/start.sh"]
+
