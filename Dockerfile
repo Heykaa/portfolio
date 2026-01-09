@@ -1,5 +1,16 @@
-# ---------- 1) Composer deps ----------
-FROM composer:2 AS vendor
+# ---------- 0) Composer binary ----------
+FROM composer:2 AS composer_bin
+
+# ---------- 1) Composer deps (WITH intl) ----------
+FROM php:8.4-cli AS vendor
+
+RUN apt-get update && apt-get install -y \
+    git unzip libzip-dev libicu-dev \
+ && docker-php-ext-install intl zip \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy composer binary
+COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 COPY composer.json composer.lock ./
@@ -13,7 +24,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources
 COPY vite.config.js ./
-# If you DO have tailwind/postcss config files, keep them in repo and add explicit COPY lines.
 RUN npm run build
 
 # ---------- 3) Final image ----------
@@ -41,7 +51,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# Prevent Vite dev hotfile from being in image
+# Prevent Vite dev hotfile
 RUN rm -f public/hot || true
 
 COPY ./render/nginx.conf /etc/nginx/nginx.conf
