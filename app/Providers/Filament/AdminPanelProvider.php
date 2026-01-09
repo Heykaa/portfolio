@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\SiteSetting;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,31 +18,54 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        $settings = \App\Models\SiteSetting::instance();
+        $brand = config('app.name', 'Portfolio');
+        $faviconUrl = null;
+        $brandLogoUrl = null;
+
+        // Jangan query DB kalau table belum wujud / DB belum ready.
+        try {
+            if (Schema::hasTable('site_settings')) {
+                $settings = SiteSetting::query()->find(1);
+
+                if ($settings?->brand_name) {
+                    $brand = $settings->brand_name;
+                }
+
+                if ($settings?->favicon_path) {
+                    $path = ltrim($settings->favicon_path, '/');
+                    $faviconUrl = asset('storage/' . $path);
+                    $brandLogoUrl = $faviconUrl;
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore - fallback ke default
+        }
 
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->login()
+            ->brandName($brand)
+            ->favicon($faviconUrl)
+            ->brandLogo($brandLogoUrl)
+            ->brandLogoHeight('3rem')
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->favicon($settings->favicon_path ? asset('storage/' . $settings->favicon_path) : null)
-            ->brandLogo($settings->favicon_path ? asset('storage/' . $settings->favicon_path) : null)
-            ->brandLogoHeight('3rem')
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
