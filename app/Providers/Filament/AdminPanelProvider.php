@@ -25,27 +25,25 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        $brand = config('app.name', 'Portfolio');
+        // Default brand fallback
+        $brandName = config('app.name', 'Portfolio');
         $faviconUrl = null;
         $brandLogoUrl = null;
 
-        // SAFETY: jangan crash kalau DB / table belum wujud
+        // SAFE: only touch DB if table exists
         try {
             if (Schema::hasTable('site_settings')) {
-                $settings = SiteSetting::query()->find(1);
+                $settings = SiteSetting::instance();
 
-                if ($settings?->brand_name) {
-                    $brand = $settings->brand_name;
-                }
+                $brandName = $settings->brand_name ?: $brandName;
 
-                if ($settings?->favicon_path) {
-                    $path = ltrim($settings->favicon_path, '/');
-                    $faviconUrl = asset('storage/' . $path);
+                if (! empty($settings->favicon_path)) {
+                    $faviconUrl = asset('storage/' . ltrim($settings->favicon_path, '/'));
                     $brandLogoUrl = $faviconUrl;
                 }
             }
         } catch (\Throwable $e) {
-            // fallback sahaja
+            // ignore - keep defaults
         }
 
         return $panel
@@ -53,28 +51,19 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName($brand)
-            ->favicon($faviconUrl)
-            ->brandLogo($brandLogoUrl)
-            ->brandLogoHeight('3rem')
+            ->brandName($brandName)
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->discoverResources(
-                in: app_path('Filament/Resources'),
-                for: 'App\\Filament\\Resources'
-            )
-            ->discoverPages(
-                in: app_path('Filament/Pages'),
-                for: 'App\\Filament\\Pages'
-            )
+            ->favicon($faviconUrl)
+            ->brandLogo($brandLogoUrl)
+            ->brandLogoHeight('3rem')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(
-                in: app_path('Filament/Widgets'),
-                for: 'App\\Filament\\Widgets'
-            )
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
