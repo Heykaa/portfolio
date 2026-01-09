@@ -29,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
         $faviconUrl = null;
         $brandLogoUrl = null;
 
-        // Jangan query DB kalau table belum wujud / DB belum ready.
+        // SAFETY: jangan crash kalau DB / table belum wujud
         try {
             if (Schema::hasTable('site_settings')) {
                 $settings = SiteSetting::query()->find(1);
@@ -45,7 +45,7 @@ class AdminPanelProvider extends PanelProvider
                 }
             }
         } catch (\Throwable $e) {
-            // ignore - fallback ke default
+            // fallback sahaja
         }
 
         return $panel
@@ -60,12 +60,21 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverResources(
+                in: app_path('Filament/Resources'),
+                for: 'App\\Filament\\Resources'
+            )
+            ->discoverPages(
+                in: app_path('Filament/Pages'),
+                for: 'App\\Filament\\Pages'
+            )
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(
+                in: app_path('Filament/Widgets'),
+                for: 'App\\Filament\\Widgets'
+            )
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
