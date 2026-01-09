@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class SiteSetting extends Model
 {
@@ -23,10 +24,18 @@ class SiteSetting extends Model
     ];
 
     /**
-     * Get the first record or create a default one.
+     * Get singleton SiteSetting safely (Render Free compatible)
      */
-    public static function instance()
+    public static function instance(): self
     {
+        // 🔴 IMPORTANT: prevent crash if migration not run yet
+        if (! Schema::hasTable('site_settings')) {
+            return new self([
+                'brand_name' => 'Portfolio's,
+                'hero_title' => 'Cinematic Portfolio',
+            ]);
+        }
+
         return self::firstOrCreate([], [
             'brand_name' => 'Portfolio',
             'hero_title' => 'Cinematic Portfolio',
