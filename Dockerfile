@@ -1,3 +1,18 @@
+# ---------- 1) Build frontend assets (Vite) ----------
+FROM node:20-alpine AS node_build
+WORKDIR /app
+
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
+# Pilih ikut lock file yang ada:
+RUN if [ -f package-lock.json ]; then npm ci; \
+    elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
+    elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+    else npm install; fi
+
+COPY . .
+RUN npm run build
+
+# ---------- 2) PHP + Nginx runtime ----------
 FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
@@ -7,28 +22,28 @@ RUN apt-get update && apt-get install -y \
  && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl \
  && rm -rf /var/lib/apt/lists/*
 
-# IMPORTANT: allow Render environment variables to reach PHP-FPM workers
-RUN { \
-      echo "[www]"; \
-      echo "clear_env = no"; \
-    } > /usr/local/etc/php-fpm.d/zz-render-env.conf
-
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 COPY . .
 
-# Ensure Laravel writable/cache folders exist
+# Copy built assets from node stage
+COPY --from=node_build /app/public/build /var/www/html/public/build
+
+# Ensure Laravel writable folders
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# Install vendor without running artisan scripts during build
+# Install PHP deps (no scripts during build)
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-COPY ./render/nginx.conf /etc/nginx/nginx.conf
+# Clear caches safely
+RUN php artisan config:clear || true \
+ && php artisan route:clear || true \
+ && php artisan view:clear || true
 
-# Start script (runtime tasks)
+COPY ./render/nginx.conf /etc/nginx/nginx.conf
 RUN chmod +x /var/www/html/render/start.sh
 
 EXPOSE 8080
