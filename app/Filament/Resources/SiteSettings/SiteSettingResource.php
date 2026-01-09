@@ -14,10 +14,10 @@ class SiteSettingResource extends Resource
 {
     protected static ?string $model = SiteSetting::class;
 
-    // Filament v4: icon boleh string atau enum (jangan override getNavigationIcon)
+    // Filament v4: type mesti ikut parent Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Site Settings';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
     public static function form(Form $form): Form
     {
@@ -57,11 +57,7 @@ class SiteSettingResource extends Resource
                         Forms\Components\FileUpload::make('hero_video_path')
                             ->disk('public')
                             ->directory('site/hero')
-                            ->acceptedFileTypes([
-                                'video/mp4',
-                                'video/webm',
-                                'video/quicktime',
-                            ]),
+                            ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
                     ])
                     ->columns(2),
 
@@ -69,8 +65,11 @@ class SiteSettingResource extends Resource
                     ->schema([
                         Forms\Components\Repeater::make('social_links')
                             ->schema([
-                                Forms\Components\TextInput::make('label')->required(),
-                                Forms\Components\TextInput::make('url')->required(),
+                                Forms\Components\TextInput::make('label')
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('url')
+                                    ->required(),
                             ])
                             ->default([])
                             ->columns(2),
