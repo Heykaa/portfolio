@@ -1,47 +1,49 @@
-# ---------- 1) Build frontend assets (Vite) ----------
-FROM node:20-alpine AS node_build
+# ---------- 1) Composer deps ----------
+FROM composer:2 AS vendor
+
 WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
 
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-# Pilih ikut lock file yang ada:
-RUN if [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then npm i -g pnpm && pnpm i --frozen-lockfile; \
-    elif [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-    else npm install; fi
+# ---------- 2) Vite build ----------
+FROM node:20-alpine AS assets
 
-COPY . .
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY resources ./resources
+COPY vite.config.js ./
+# if you have postcss/tailwind config files, copy them too:
+COPY tailwind.config.* postcss.config.* . 2>/dev/null || true
 RUN npm run build
 
-# ---------- 2) PHP + Nginx runtime ----------
+# ---------- 3) Final image ----------
 FROM php:8.4-fpm
 
 RUN apt-get update && apt-get install -y \
     git unzip nginx \
-    libzip-dev libpq-dev \
-    libicu-dev \
+    libzip-dev libpq-dev libicu-dev \
  && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 WORKDIR /var/www/html
+
+# App source
 COPY . .
 
-# Copy built assets from node stage
-COPY --from=node_build /app/public/build /var/www/html/public/build
+# Vendor from composer stage
+COPY --from=vendor /app/vendor ./vendor
 
-# Ensure Laravel writable folders
+# Built assets from node stage
+COPY --from=assets /app/public/build ./public/build
+
+# Ensure Laravel writable/cache folders exist
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
-# Install PHP deps (no scripts during build)
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Clear caches safely
-RUN php artisan config:clear || true \
- && php artisan route:clear || true \
- && php artisan view:clear || true
+# Prevent Vite dev hotfile from being in image
+RUN rm -f public/hot || true
 
 COPY ./render/nginx.conf /etc/nginx/nginx.conf
 RUN chmod +x /var/www/html/render/start.sh
