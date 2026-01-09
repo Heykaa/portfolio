@@ -26,9 +26,7 @@ class SiteSetting extends Model
     ];
 
     /**
-     * Safe singleton accessor.
-     * - If table doesn't exist yet, return an in-memory default model (no DB hit).
-     * - If table exists, ensure there's always exactly 1 row (id=1).
+     * Safe singleton accessor (production friendly)
      */
     public static function instance(): self
     {
