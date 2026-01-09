@@ -3,21 +3,24 @@ set -e
 
 cd /var/www/html
 
+# ✅ IMPORTANT: prevent Vite trying dev-server in production
+rm -f public/hot || true
+
 mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
-php artisan config:clear || true
-php artisan route:clear || true
-php artisan view:clear || true
-php artisan cache:clear || true
-
-# Run migration safely (Render free has no shell)
-php artisan migrate --force || true
+# Clear caches safely
+php artisan optimize:clear || true
 
 # Storage link
 if [ ! -L public/storage ]; then
   php artisan storage:link || true
+fi
+
+# ✅ RUN MIGRATIONS (set RUN_MIGRATIONS=true in Render env once, then you can turn it off)
+if [ "${RUN_MIGRATIONS}" = "true" ]; then
+  php artisan migrate --force || true
 fi
 
 php-fpm -D
