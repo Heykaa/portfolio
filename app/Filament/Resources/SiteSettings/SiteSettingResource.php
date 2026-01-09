@@ -1,57 +1,84 @@
 <?php
 
-namespace App\Models;
+namespace App\Filament\Resources\SiteSettings;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
+use App\Filament\Resources\SiteSettings\SiteSettingResource\Pages;
+use App\Models\SiteSetting;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
 
-class SiteSetting extends Model
+class SiteSettingResource extends Resource
 {
-    protected $table = 'site_settings';
+    protected static ?string $model = SiteSetting::class;
 
-    protected $fillable = [
-        'brand_name',
-        'hero_title',
-        'hero_subtitle',
-        'hero_cta_text',
-        'hero_cta_url',
-        'hero_image_path',
-        'hero_video_path',
-        'favicon_path',
-        'social_links',
-    ];
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationLabel = 'Site Settings';
+    protected static ?string $navigationGroup = 'Settings';
 
-    protected $casts = [
-        'social_links' => 'array',
-    ];
-
-    /**
-     * Get the first record or create a default one.
-     * SAFE in production even if migrations haven't run yet.
-     */
-    public static function instance(): self
+    public static function form(Form $form): Form
     {
-        // If table doesn't exist yet, return an in-memory default model (no DB hit).
-        try {
-            if (! Schema::hasTable('site_settings')) {
-                return new self([
-                    'brand_name' => config('app.name', 'Portfolio'),
-                    'hero_title' => 'Cinematic Portfolio',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            return new self([
-                'brand_name' => config('app.name', 'Portfolio'),
-                'hero_title' => 'Cinematic Portfolio',
-            ]);
-        }
+        return $form
+            ->schema([
+                Forms\Components\Section::make('Brand')
+                    ->schema([
+                        Forms\Components\TextInput::make('brand_name')->maxLength(255),
+                        Forms\Components\FileUpload::make('favicon_path')
+                            ->disk('public')
+                            ->directory('site')
+                            ->image(),
+                    ])->columns(2),
 
-        return self::query()->firstOrCreate(
-            ['id' => 1],
-            [
-                'brand_name' => config('app.name', 'Portfolio'),
-                'hero_title' => 'Cinematic Portfolio',
-            ]
-        );
+                Forms\Components\Section::make('Hero')
+                    ->schema([
+                        Forms\Components\TextInput::make('hero_title')->maxLength(255),
+                        Forms\Components\Textarea::make('hero_subtitle')->rows(3),
+                        Forms\Components\TextInput::make('hero_cta_text')->maxLength(255),
+                        Forms\Components\TextInput::make('hero_cta_url')->maxLength(255),
+                        Forms\Components\FileUpload::make('hero_image_path')
+                            ->disk('public')
+                            ->directory('site/hero')
+                            ->image(),
+                        Forms\Components\FileUpload::make('hero_video_path')
+                            ->disk('public')
+                            ->directory('site/hero')
+                            ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Social Links')
+                    ->schema([
+                        Forms\Components\Repeater::make('social_links')
+                            ->schema([
+                                Forms\Components\TextInput::make('label')->required(),
+                                Forms\Components\TextInput::make('url')->required(),
+                            ])
+                            ->default([])
+                            ->columns(2),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('brand_name')->searchable(),
+                Tables\Columns\TextColumn::make('hero_title')->searchable(),
+                Tables\Columns\TextColumn::make('updated_at')->dateTime()->since(),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListSiteSettings::route('/'),
+            'edit' => Pages\EditSiteSetting::route('/{record}/edit'),
+        ];
     }
 }
