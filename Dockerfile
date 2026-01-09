@@ -12,7 +12,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Ensure Laravel writable/cache folders exist
+# Ensure Laravel writable/cache folders exist (build-time)
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
@@ -20,11 +20,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 # IMPORTANT: prevent artisan scripts running during build
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-RUN php artisan key:clear || true \
- && php artisan config:clear \
- && php artisan route:clear \
- && php artisan view:clear
-
+# Nginx config
 COPY ./render/nginx.conf /etc/nginx/nginx.conf
 
 # Start script (runtime tasks)
@@ -32,5 +28,3 @@ RUN chmod +x /var/www/html/render/start.sh
 
 EXPOSE 8080
 CMD ["bash", "-lc", "/var/www/html/render/start.sh"]
-
-
