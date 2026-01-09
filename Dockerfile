@@ -20,6 +20,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
 # IMPORTANT: prevent artisan scripts running during build
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
+
 COPY ./render/nginx.conf /etc/nginx/nginx.conf
 
 # Start script (runtime tasks)
@@ -27,3 +28,4 @@ RUN chmod +x /var/www/html/render/start.sh
 
 EXPOSE 8080
 CMD ["bash", "-lc", "/var/www/html/render/start.sh"]
+
