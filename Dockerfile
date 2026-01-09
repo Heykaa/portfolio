@@ -1,17 +1,20 @@
 # ---------- 1) Composer deps ----------
 FROM composer:2 AS vendor
+
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts --optimize-autoloader
 
 # ---------- 2) Vite build ----------
 FROM node:20-alpine AS assets
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
+
 COPY resources ./resources
 COPY vite.config.js ./
-COPY tailwind.config.js postcss.config.js ./
+
 RUN npm run build
 
 # ---------- 3) Final image ----------
@@ -26,6 +29,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /var/www/html
 
 COPY . .
+
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=assets /app/public/build ./public/build
 
@@ -40,4 +44,3 @@ RUN chmod +x /var/www/html/render/start.sh
 
 EXPOSE 8080
 CMD ["bash", "-lc", "/var/www/html/render/start.sh"]
-
