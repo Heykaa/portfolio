@@ -2,17 +2,11 @@
 
 namespace App\Filament\Resources\SiteSettings;
 
+use App\Filament\Resources\SiteSettings\Pages\ManageSiteSettings;
 use App\Models\SiteSetting;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section as FormSection;
-use Filament\Schemas\Schema;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\EditAction;
+use Filament\Tables;
 
 class SiteSettingResource extends Resource
 {
@@ -22,55 +16,58 @@ class SiteSettingResource extends Resource
     protected static ?string $navigationLabel = 'Site Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
-    public static function form(Schema $schema): Schema
+    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
-        return $schema->components([
-            FormSection::make('Brand')
+        return $schema->schema([
+            Forms\Components\Section::make('Brand')
                 ->schema([
-                    TextInput::make('brand_name')->maxLength(255),
-                    FileUpload::make('favicon_path')
+                    Forms\Components\TextInput::make('brand_name')->maxLength(255),
+                    Forms\Components\FileUpload::make('favicon_path')
                         ->disk('public')
                         ->directory('site')
                         ->image(),
                 ])
                 ->columns(2),
 
-            FormSection::make('Hero')
+            Forms\Components\Section::make('Hero')
                 ->schema([
-                    TextInput::make('hero_title')->maxLength(255),
-                    Textarea::make('hero_subtitle')->rows(3),
-                    TextInput::make('hero_cta_text')->maxLength(255),
-                    TextInput::make('hero_cta_url')->maxLength(255),
-                    FileUpload::make('hero_image_path')
+                    Forms\Components\TextInput::make('hero_title')->maxLength(255),
+                    Forms\Components\Textarea::make('hero_subtitle')->rows(3),
+                    Forms\Components\TextInput::make('hero_cta_text')->maxLength(255),
+                    Forms\Components\TextInput::make('hero_cta_url')->maxLength(255),
+                    Forms\Components\FileUpload::make('hero_image_path')
                         ->disk('public')
                         ->directory('site/hero')
                         ->image(),
-                    FileUpload::make('hero_video_path')
+                    Forms\Components\FileUpload::make('hero_video_path')
                         ->disk('public')
                         ->directory('site/hero')
                         ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
                 ])
                 ->columns(2),
 
-            FormSection::make('Social Links')
+            Forms\Components\Section::make('Social Links')
                 ->schema([
-                    KeyValue::make('social_links')
-                        ->keyLabel('Platform')
-                        ->valueLabel('URL'),
+                    Forms\Components\Repeater::make('social_links')
+                        ->schema([
+                            Forms\Components\TextInput::make('label')->required(),
+                            Forms\Components\TextInput::make('url')->required(),
+                        ])
+                        ->columns(2),
                 ]),
         ]);
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('brand_name')->searchable(),
-                TextColumn::make('hero_title')->searchable(),
-                TextColumn::make('updated_at')->since(),
+                Tables\Columns\TextColumn::make('brand_name')->searchable(),
+                Tables\Columns\TextColumn::make('hero_title')->searchable(),
+                Tables\Columns\TextColumn::make('updated_at')->since(),
             ])
             ->actions([
-                EditAction::make(),
+                Tables\Actions\EditAction::make(),
             ]);
     }
 
