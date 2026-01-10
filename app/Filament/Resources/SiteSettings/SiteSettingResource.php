@@ -5,8 +5,8 @@ namespace App\Filament\Resources\SiteSettings;
 use App\Filament\Resources\SiteSettings\SiteSettingResource\Pages;
 use App\Models\SiteSetting;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -14,14 +14,14 @@ class SiteSettingResource extends Resource
 {
     protected static ?string $model = SiteSetting::class;
 
-    // Filament v4: type mesti ikut parent Resource
+    // Filament v4: ikut type parent Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static ?string $navigationLabel = 'Site Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $navigationLabel = 'Site Settings';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                 Forms\Components\Section::make('Brand')
                     ->schema([
