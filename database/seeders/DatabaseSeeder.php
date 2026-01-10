@@ -15,12 +15,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // ✅ Seed hanya kalau belum ada sections (elak duplicate & elak kacau data production)
-        if (Section::count() > 0) {
-            return;
-        }
-
-        // ✅ Admin User (idempotent)
+        // ✅ Admin User (idempotent) - Di atas supaya sentiasa run walau Section dah ada
         $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
         $adminPass  = env('ADMIN_PASSWORD', 'change-me-now');
 
@@ -48,6 +43,11 @@ class DatabaseSeeder extends Seeder
                 ],
             ]
         );
+
+        // ✅ Seed hanya kalau belum ada sections (elak duplicate & elak kacau data production)
+        if (Section::count() > 0) {
+            return;
+        }
 
         // ✅ Sections
         $sections = [
