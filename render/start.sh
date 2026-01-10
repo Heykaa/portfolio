@@ -5,42 +5,47 @@ cd /var/www/html
 
 php -v
 
-# Create required dirs (include cache/data)
+# Ensure required dirs (include cache/data)
 mkdir -p \
   storage/framework/cache/data \
   storage/framework/sessions \
   storage/framework/views \
   bootstrap/cache || true
 
-# Fix permissions FIRST (before running artisan clear)
+# Fix permissions FIRST
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
-# (Optional but powerful) hard reset stale cache files
+# Optional: hard reset stale cache files (prevents weird cache clear failures)
 rm -rf storage/framework/cache/* storage/framework/views/* bootstrap/cache/* || true
 mkdir -p storage/framework/cache/data storage/framework/views bootstrap/cache || true
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
+# Helper to run artisan as www-data (avoids root-owned cache files)
+artisan() {
+  su -s /bin/bash www-data -c "php artisan $*" || true
+}
+
 # Ensure APP_KEY exists (Render env vars should provide this)
 if [ -z "$APP_KEY" ]; then
   echo "APP_KEY is missing. Generating..."
-  php artisan key:generate --force || true
+  artisan "key:generate --force"
 fi
 
-# Clear caches (now should not error)
-php artisan optimize:clear || true
+# Clear caches
+artisan "optimize:clear"
 
 # Storage link
-php artisan storage:link || true
+artisan "storage:link"
 
 # Migrations
-php artisan migrate --force || true
+artisan "migrate --force"
 
 # Rebuild production caches
-php artisan config:cache || true
-php artisan route:cache  || true
-php artisan view:cache   || true
+artisan "config:cache"
+artisan "route:cache"
+artisan "view:cache"
 
 # Start PHP-FPM
 php-fpm -D
