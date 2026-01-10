@@ -6,8 +6,8 @@ FROM php:8.4-cli AS vendor
 
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libicu-dev \
-    && docker-php-ext-install intl zip \
-    && rm -rf /var/lib/apt/lists/*
+ && docker-php-ext-install intl zip \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
 
@@ -17,6 +17,7 @@ RUN composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
+    --no-scripts \
     --optimize-autoloader
 
 # ---------- 2) Vite build ----------
@@ -36,8 +37,8 @@ FROM php:8.4-fpm
 RUN apt-get update && apt-get install -y \
     git unzip nginx \
     libzip-dev libpq-dev libicu-dev \
-    && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl \
-    && rm -rf /var/lib/apt/lists/*
+ && docker-php-ext-install pdo pdo_mysql pdo_pgsql zip intl \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
 
@@ -52,12 +53,12 @@ COPY --from=assets /app/public/build ./public/build
 
 # Ensure Laravel writable/cache folders exist (include cache/data)
 RUN mkdir -p \
-    storage/framework/cache/data \
-    storage/framework/sessions \
-    storage/framework/views \
-    bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+      storage/framework/cache/data \
+      storage/framework/sessions \
+      storage/framework/views \
+      bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache \
+ && chmod -R 775 storage bootstrap/cache
 
 # Prevent Vite dev hotfile
 RUN rm -f public/hot || true
@@ -68,7 +69,7 @@ RUN chmod +x /var/www/html/render/start.sh
 
 # Optional: make nginx folders writable (reduces noisy warnings)
 RUN mkdir -p /var/log/nginx /var/lib/nginx /run \
-    && chown -R www-data:www-data /var/log/nginx /var/lib/nginx || true
+ && chown -R www-data:www-data /var/log/nginx /var/lib/nginx || true
 
 EXPOSE 8080
 
