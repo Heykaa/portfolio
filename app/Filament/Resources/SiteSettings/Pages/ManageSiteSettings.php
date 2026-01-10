@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\SiteSettings\Pages;
+namespace App\Filament\Resources\SiteSettings\SiteSettingResource\Pages;
 
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
 
 class ManageSiteSettings extends ManageRecords
@@ -12,8 +11,11 @@ class ManageSiteSettings extends ManageRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
+    }
+
+    protected function canCreate(): bool
+    {
+        return false;
     }
 }
