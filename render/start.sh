@@ -41,6 +41,9 @@ php artisan config:clear || true
 # Storage link
 artisan "storage:link"
 
+# Filament assets
+artisan "filament:assets"
+
 # Migrations
 
 artisan "migrate --force"
