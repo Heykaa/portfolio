@@ -5,61 +5,38 @@ cd /var/www/html
 
 php -v
 
-# ----------------------
-# Clean old caches
-# ----------------------
-rm -f bootstrap/cache/*.php || true
+# Ensure folders
+mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache public/storage || true
 
-# ----------------------
-# Ensure directories
-# ----------------------
-mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache public/storage public/livewire
-
-# ----------------------
-# Composer install (if needed)
-# ----------------------
-composer install --no-dev --optimize-autoloader
-
-# ----------------------
-# Generate APP_KEY
-# ----------------------
+# Generate APP_KEY if missing
 if [ -z "$APP_KEY" ]; then
   php artisan key:generate --force
 fi
 
-# ----------------------
-# Publish Livewire assets
-# ----------------------
+# Clear caches
+php artisan optimize:clear || true
+
+# Publish Livewire assets (CRITICAL)
 php artisan livewire:publish --assets || true
 
-# ----------------------
-# Copy storage (Render safe)
-# ----------------------
+# Render-safe storage (NO symlink)
 if [ ! -d "public/storage" ]; then
-  cp -r storage/app/public/* public/storage/ || true
+  cp -r storage/app/public public/storage || true
 fi
 
-# ----------------------
-# Migrate & Seed
-# ----------------------
+# Migrate & seed
 php artisan migrate --force || true
 php artisan db:seed --force || true
 
-# ----------------------
 # Cache for production
-# ----------------------
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
-# ----------------------
 # Permissions
-# ----------------------
 chown -R www-data:www-data storage bootstrap/cache public || true
 chmod -R 775 storage bootstrap/cache public || true
 
-# ----------------------
-# Start PHP-FPM & Nginx
-# ----------------------
+# Start services
 php-fpm -D
 nginx -g "daemon off;"
