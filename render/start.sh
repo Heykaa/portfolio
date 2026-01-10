@@ -1,1 +1,58 @@
-#!/usr/bin/env bash set -e cd /var/www/html php -v # Make sure storage folders exist mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache || true # Ensure APP_KEY exists (Render env vars should provide this) if [ -z "$APP_KEY" ]; then echo "APP_KEY is missing. Generating..." php artisan key:generate --force fi # Clear any stale caches (safe in container) php artisan config:clear || true php artisan route:clear || true php artisan view:clear || true php artisan cache:clear || true # Storage link php artisan storage:link || true # Run migrations automatically (optional, but usually needed on Render) php artisan migrate --force || true # Optimize caches for production (optional but recommended) php artisan config:cache || true php artisan route:cache || true php artisan view:cache || true # Permissions chown -R www-data:www-data storage bootstrap/cache || true chmod -R 775 storage bootstrap/cache || true # Start PHP-FPM php-fpm -D # Start Nginx foreground nginx -g "daemon off;"
+#!/usr/bin/env bash
+set -e
+
+cd /var/www/html
+
+php -v
+
+# Ensure required dirs (include cache/data)
+mkdir -p \
+  storage/framework/cache/data \
+  storage/framework/sessions \
+  storage/framework/views \
+  bootstrap/cache || true
+
+# Fix permissions FIRST
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
+# Optional: hard reset stale cache files (prevents weird cache clear failures)
+rm -rf storage/framework/cache/* storage/framework/views/* bootstrap/cache/* || true
+mkdir -p storage/framework/cache/data storage/framework/views bootstrap/cache || true
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
+# Helper to run artisan as www-data (avoids root-owned cache files)
+artisan() {
+  su -s /bin/bash www-data -c "php artisan $*" || true
+}
+
+# Ensure APP_KEY exists (Render env vars should provide this)
+if [ -z "$APP_KEY" ]; then
+  echo "APP_KEY is missing. Generating..."
+  artisan "key:generate --force"
+fi
+
+# Clear caches
+php artisan optimize:clear || true
+php artisan config:cache || true
+
+# Storage link
+artisan "storage:link"
+
+# Migrations
+
+artisan "migrate --force"
+artisan "db:seed --force"
+
+
+# Rebuild production caches
+artisan "config:cache"
+artisan "route:cache"
+artisan "view:cache"
+
+# Start PHP-FPM
+php-fpm -D
+
+# Start Nginx foreground
+nginx -g "daemon off;"
