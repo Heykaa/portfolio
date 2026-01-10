@@ -5,35 +5,42 @@ cd /var/www/html
 
 php -v
 
-# Make sure storage folders exist
-mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache || true
+# Create required dirs (include cache/data)
+mkdir -p \
+  storage/framework/cache/data \
+  storage/framework/sessions \
+  storage/framework/views \
+  bootstrap/cache || true
+
+# Fix permissions FIRST (before running artisan clear)
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
+# (Optional but powerful) hard reset stale cache files
+rm -rf storage/framework/cache/* storage/framework/views/* bootstrap/cache/* || true
+mkdir -p storage/framework/cache/data storage/framework/views bootstrap/cache || true
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
 
 # Ensure APP_KEY exists (Render env vars should provide this)
 if [ -z "$APP_KEY" ]; then
   echo "APP_KEY is missing. Generating..."
-  php artisan key:generate --force
+  php artisan key:generate --force || true
 fi
 
-# Clear any stale caches (safe in container)
-php artisan config:clear || true
-php artisan route:clear  || true
-php artisan view:clear   || true
-php artisan cache:clear  || true
+# Clear caches (now should not error)
+php artisan optimize:clear || true
 
 # Storage link
 php artisan storage:link || true
 
-# Run migrations automatically (optional, but usually needed on Render)
+# Migrations
 php artisan migrate --force || true
 
-# Optimize caches for production (optional but recommended)
+# Rebuild production caches
 php artisan config:cache || true
 php artisan route:cache  || true
 php artisan view:cache   || true
-
-# Permissions
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R 775 storage bootstrap/cache || true
 
 # Start PHP-FPM
 php-fpm -D
