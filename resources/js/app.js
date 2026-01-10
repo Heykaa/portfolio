@@ -4,19 +4,42 @@ import { initGsapAnimations } from './animations/gsap';
 import { initSplitText } from './animations/splitText';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // ✅ Run animations only on portfolio page
+    const isPortfolio = document.body?.dataset?.page === 'portfolio';
+    if (!isPortfolio) return;
+
     // Helper: safely run a function and never break the page
     const safeRun = (label, fn) => {
         try {
             fn();
         } catch (e) {
-            console.warn(`[${label}] skipped بسبب error:`, e);
+            console.warn(`[${label}] skipped due to error:`, e);
         }
     };
 
-    // (Optional) Kalau ada class preload yang kunci content
-    // Pastikan page tak terkunci walau animasi fail
+    // ✅ Ensure page never gets locked if something fails
     document.documentElement.classList.remove('is-loading');
     document.body.classList.remove('is-loading');
+
+    // ✅ Kill forced hidden styles (common issue when GSAP fails)
+    const forceVisible = () => {
+        const selectors = ['#hero', '#smooth-content', '#smooth-wrapper'];
+        selectors.forEach((sel) => {
+            const el = document.querySelector(sel);
+            if (el) {
+                el.style.opacity = '';
+                el.style.visibility = '';
+                el.style.transform = '';
+            }
+        });
+
+        // If any "data-animate" items were set hidden, restore them
+        document.querySelectorAll('[data-animate]').forEach((el) => {
+            el.style.opacity = '';
+            el.style.visibility = '';
+            el.style.transform = '';
+        });
+    };
 
     // 1) Init smooth scroll (Lenis) - safe
     let lenis = null;
@@ -45,13 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
             appText: hasAppText,
         });
 
-        // Kalau animasi biasa set element opacity 0, pastikan dia nampak
-        const hero = document.querySelector('#hero');
-        if (hero) {
-            hero.style.opacity = '';
-            hero.style.visibility = '';
-        }
+        forceVisible();
     }
+
+    // ✅ Final safety: if anything still hidden, force visible after 500ms
+    setTimeout(() => {
+        forceVisible();
+    }, 500);
 
     console.log('Cinematic Portfolio Initialized');
 });
