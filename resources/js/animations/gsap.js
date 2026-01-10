@@ -5,10 +5,12 @@ import SplitType from 'split-type';
 gsap.registerPlugin(ScrollTrigger);
 
 export const initGsapAnimations = (lenis) => {
-    // Sync ScrollTrigger with Lenis
-    lenis.on('scroll', ScrollTrigger.update);
+    // --- Safety: Lenis optional ---
+    if (lenis?.on) {
+        lenis.on('scroll', ScrollTrigger.update);
+    }
 
-    // 1. Custom Cursor
+    // 1) Custom Cursor
     const cursor = document.getElementById('custom-cursor');
     if (cursor) {
         window.addEventListener('mousemove', (e) => {
@@ -18,6 +20,7 @@ export const initGsapAnimations = (lenis) => {
                 duration: 0.1,
                 ease: 'power2.out'
             });
+
             if (!cursor.classList.contains('active')) {
                 cursor.style.display = 'block';
                 cursor.classList.add('active');
@@ -25,22 +28,44 @@ export const initGsapAnimations = (lenis) => {
         });
     }
 
-    // 2. Hero Reveal
-    const heroTimeline = gsap.timeline();
-    heroTimeline.from('.split-text', {
-        y: 100,
-        opacity: 0,
-        duration: 1.5,
-        stagger: 0.2,
-        ease: 'power4.out',
-        delay: 0.5
-    }).from('#hero-bg', {
-        scale: 1.5,
-        duration: 2.5,
-        ease: 'power2.out'
-    }, 0);
+    // 2) Hero Reveal (guarded)
+    const splitTargets = document.querySelectorAll('.split-text');
+    const heroBg = document.querySelector('#hero-bg');
 
-    // 3. Reveal Cards on Scroll
+    const heroTimeline = gsap.timeline();
+
+    if (splitTargets.length) {
+        heroTimeline.from(splitTargets, {
+            y: 100,
+            opacity: 0,
+            duration: 1.5,
+            stagger: 0.2,
+            ease: 'power4.out',
+            delay: 0.5
+        }, 0);
+    }
+
+    if (heroBg) {
+        heroTimeline.from(heroBg, {
+            scale: 1.5,
+            duration: 2.5,
+            ease: 'power2.out'
+        }, 0);
+
+        // 4) Parallax hero background (only if heroBg exists)
+        gsap.to(heroBg, {
+            yPercent: 30,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+    }
+
+    // 3) Reveal Cards on Scroll
     const reveals = document.querySelectorAll('.reveal-card');
     reveals.forEach((reveal) => {
         ScrollTrigger.create({
@@ -50,44 +75,37 @@ export const initGsapAnimations = (lenis) => {
         });
     });
 
-    // 4. Parallax Sections
-    gsap.to('#hero-bg', {
-        yPercent: 30,
-        ease: 'none',
-        scrollTrigger: {
-            trigger: '#hero',
-            start: 'top top',
-            end: 'bottom top',
-            scrub: true
-        }
-    });
-
-    // 5. Counter Animations
+    // 5) Counter Animations (guard data-target)
     const counters = document.querySelectorAll('.counter');
     counters.forEach((counter) => {
-        const target = parseInt(counter.getAttribute('data-target'));
+        const raw = counter.getAttribute('data-target');
+        const target = Number.parseInt(raw ?? '', 10);
+        if (!Number.isFinite(target)) return;
+
         ScrollTrigger.create({
             trigger: counter,
             start: 'top 90%',
+            once: true,
             onEnter: () => {
-                let count = { value: 0 };
+                const count = { value: 0 };
                 gsap.to(count, {
                     value: target,
                     duration: 2,
                     ease: 'power2.out',
                     onUpdate: () => {
-                        counter.innerText = Math.floor(count.value);
+                        counter.innerText = String(Math.floor(count.value));
                     }
                 });
             }
         });
     });
 
-    // 6. Stack Cube Tilt
+    // 6) Stack Cube Tilt
     const cube = document.getElementById('stack-cube');
-    if (cube) {
+    const stackSection = document.getElementById('stack');
+    if (cube && stackSection) {
         ScrollTrigger.create({
-            trigger: '#stack',
+            trigger: stackSection,
             start: 'top bottom',
             end: 'bottom top',
             onUpdate: (self) => {
@@ -101,27 +119,28 @@ export const initGsapAnimations = (lenis) => {
         });
     }
 
-    // 7. Navbar Hide/Show
-    let lastScroll = 0;
+    // 7) Navbar Hide/Show (guard nav + lenis)
     const nav = document.getElementById('main-nav');
-    lenis.on('scroll', ({ scroll }) => {
-        if (scroll > lastScroll && scroll > 100) {
-            gsap.to(nav, { y: -100, duration: 0.5, ease: 'power2.out' });
-        } else {
-            gsap.to(nav, { y: 0, duration: 0.5, ease: 'power2.out' });
-        }
-        lastScroll = scroll;
-    });
+    if (nav && lenis?.on) {
+        let lastScroll = 0;
 
-    // 8. Pinned Horizontal Projects Scroller with Background Animation
+        lenis.on('scroll', ({ scroll }) => {
+            if (scroll > lastScroll && scroll > 100) {
+                gsap.to(nav, { y: -100, duration: 0.5, ease: 'power2.out' });
+            } else {
+                gsap.to(nav, { y: 0, duration: 0.5, ease: 'power2.out' });
+            }
+            lastScroll = scroll;
+        });
+    }
+
+    // 8) Pinned Horizontal Projects Scroller with Background Animation
     initProjectsBackgroundLines();
     initPinnedProjects();
 };
 
 /**
  * Animated background lines for projects section
- * Creates multi-movement visual effect with lines moving vertically
- * while the horizontal scroll continues
  */
 function initProjectsBackgroundLines() {
     const section = document.querySelector('[data-projects-section]');
@@ -132,14 +151,13 @@ function initProjectsBackgroundLines() {
     const lines = bgLines.querySelectorAll('.projects-bg-line-h');
     const accentLines = bgLines.querySelectorAll('.projects-accent-line-h');
 
-    // Horizontal lines moving UP at different speeds (parallax effect)
     lines.forEach((line, index) => {
         const speed = 0.8 + (index % 5) * 0.4;
-        const direction = -1; // Move UP
+        const direction = -1;
 
         gsap.to(line, {
             y: `${direction * 200 * speed}px`,
-            x: `${(index % 2 === 0 ? 1 : -1) * 150}px`, // Horizontal drift
+            x: `${(index % 2 === 0 ? 1 : -1) * 150}px`,
             ease: 'none',
             scrollTrigger: {
                 trigger: section,
@@ -150,7 +168,6 @@ function initProjectsBackgroundLines() {
         });
     });
 
-    // Accent lines
     accentLines.forEach((line, index) => {
         const delay = index * 0.2;
 
@@ -161,7 +178,7 @@ function initProjectsBackgroundLines() {
                 gsap.to(line, {
                     opacity: 1,
                     duration: 0.8,
-                    delay: delay,
+                    delay,
                     ease: 'power2.out'
                 });
                 line.classList.add('is-visible');
@@ -189,7 +206,6 @@ function initProjectsBackgroundLines() {
         });
     });
 
-    // Container rotation
     gsap.to(bgLines, {
         rotateZ: -1.5,
         ease: 'none',
@@ -204,7 +220,6 @@ function initProjectsBackgroundLines() {
 
 /**
  * Pinned horizontal scroll for projects section
- * Uses ScrollTrigger pin + scrub
  */
 function initPinnedProjects() {
     const section = document.querySelector('[data-projects-section]');
@@ -215,11 +230,9 @@ function initPinnedProjects() {
 
     if (!section || !viewport || !track || cards.length === 0) return;
 
-    // Calculate horizontal scroll distance
-    const getScrollDistance = () => track.scrollWidth - viewport.clientWidth;
+    const getScrollDistance = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
 
-    // Animate track horizontally - Works on ALL screen sizes
-    const projectST = gsap.to(track, {
+    gsap.to(track, {
         x: () => -getScrollDistance(),
         ease: 'none',
         scrollTrigger: {
@@ -238,26 +251,22 @@ function initPinnedProjects() {
         }
     });
 
-    // Refresh on resize
     window.addEventListener('resize', () => ScrollTrigger.refresh());
 
-    // Refresh on images load
     const images = track.querySelectorAll('img');
     images.forEach((img) => {
         if (img.complete) {
             ScrollTrigger.refresh();
         } else {
-            img.addEventListener('load', () => ScrollTrigger.refresh());
+            img.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
         }
     });
 
-    // Spotlight Hover/Focus Behavior
     initCardSpotlight(cards);
 }
 
 /**
- * Premium hover/focus spotlight effect for project cards
- * Lifts target card, dims siblings
+ * Spotlight Hover/Focus Behavior
  */
 function initCardSpotlight(cards) {
     if (!cards || cards.length === 0) return;
@@ -281,14 +290,11 @@ function initCardSpotlight(cards) {
     };
 
     cards.forEach((card) => {
-        // Mouse events
         card.addEventListener('mouseenter', () => activateSpotlight(card));
         card.addEventListener('mouseleave', deactivateSpotlight);
 
-        // Focus events (keyboard accessibility)
         card.addEventListener('focusin', () => activateSpotlight(card));
         card.addEventListener('focusout', (e) => {
-            // Only deactivate if focus leaves all cards
             const relatedTarget = e.relatedTarget;
             const isStillInCards = Array.from(cards).some((c) => c.contains(relatedTarget));
             if (!isStillInCards) {
