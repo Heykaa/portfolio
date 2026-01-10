@@ -34,7 +34,8 @@ if [ -z "$APP_KEY" ]; then
 fi
 
 # Clear caches
-artisan "optimize:clear"
+php artisan optimize:clear || true
+php artisan config:cache || true
 
 # Storage link
 artisan "storage:link"
