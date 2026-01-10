@@ -40,7 +40,10 @@ artisan "optimize:clear"
 artisan "storage:link"
 
 # Migrations
+
 artisan "migrate --force"
+artisan "db:seed --force"
+
 
 # Rebuild production caches
 artisan "config:cache"
