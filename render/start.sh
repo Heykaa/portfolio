@@ -35,6 +35,7 @@ fi
 
 # Clear caches
 php artisan optimize:clear || true
+php artisan package:discover --ansi || true
 php artisan config:cache || true
 
 # Storage link
