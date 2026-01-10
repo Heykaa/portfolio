@@ -50,7 +50,7 @@
     </style>
 </head>
 
-<body class="antialiased">
+<body class="antialiased" data-page="portfolio">
     <!-- Custom Cursor -->
     <div id="custom-cursor"
         class="fixed top-0 left-0 w-4 h-4 bg-white rounded-full pointer-events-none z-50 mix-blend-difference hidden md:block">
