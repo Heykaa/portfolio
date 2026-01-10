@@ -35,7 +35,8 @@ fi
 
 # Clear caches
 php artisan optimize:clear || true
-php artisan config:cache || true
+php artisan view:clear || true
+php artisan config:clear || true
 
 # Storage link
 artisan "storage:link"
