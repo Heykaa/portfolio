@@ -4,7 +4,6 @@ namespace App\Providers\Filament;
 
 use App\Models\SiteSetting;
 use Filament\Http\Middleware\Authenticate;
-use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
@@ -25,17 +24,23 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        // Default brand fallback
+        /*
+        |--------------------------------------------------------------------------
+        | Brand defaults (SAFE untuk Render / fresh DB)
+        |--------------------------------------------------------------------------
+        */
         $brandName = config('app.name', 'Portfolio');
         $faviconUrl = null;
         $brandLogoUrl = null;
 
-        // SAFE: only touch DB if table exists
+        // Jangan crash kalau DB belum migrate
         try {
             if (Schema::hasTable('site_settings')) {
                 $settings = SiteSetting::instance();
 
-                $brandName = $settings->brand_name ?: $brandName;
+                if (! empty($settings->brand_name)) {
+                    $brandName = $settings->brand_name;
+                }
 
                 if (! empty($settings->favicon_path)) {
                     $faviconUrl = asset('storage/' . ltrim($settings->favicon_path, '/'));
@@ -43,14 +48,23 @@ class AdminPanelProvider extends PanelProvider
                 }
             }
         } catch (\Throwable $e) {
-            // ignore - keep defaults
+            // Ignore — fallback to defaults
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Panel config
+        |--------------------------------------------------------------------------
+        */
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
+
+            // 🔴 WAJIB untuk elak login loop
             ->login()
+            ->authGuard('web')
+
             ->brandName($brandName)
             ->colors([
                 'primary' => Color::Amber,
@@ -58,27 +72,43 @@ class AdminPanelProvider extends PanelProvider
             ->favicon($faviconUrl)
             ->brandLogo($brandLogoUrl)
             ->brandLogoHeight('3rem')
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+
+            ->discoverResources(
+                in: app_path('Filament/Resources'),
+                for: 'App\\Filament\\Resources'
+            )
+            ->discoverPages(
+                in: app_path('Filament/Pages'),
+                for: 'App\\Filament\\Pages'
+            )
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(
+                in: app_path('Filament/Widgets'),
+                for: 'App\\Filament\\Widgets'
+            )
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])
+
+            /*
+            |--------------------------------------------------------------------------
+            | Middleware (Render-safe)
+            |--------------------------------------------------------------------------
+            */
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+
             ->authMiddleware([
                 Authenticate::class,
             ]);
