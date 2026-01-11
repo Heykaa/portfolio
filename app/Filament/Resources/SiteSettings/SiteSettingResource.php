@@ -7,6 +7,8 @@ use App\Models\SiteSetting;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Section as FormSection;
 
 class SiteSettingResource extends Resource
 {
@@ -16,10 +18,10 @@ class SiteSettingResource extends Resource
     protected static ?string $navigationLabel = 'Site Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
-    public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\Section::make('Brand')
+            FormSection::make('Brand')
                 ->schema([
                     Forms\Components\TextInput::make('brand_name')->maxLength(255),
                     Forms\Components\FileUpload::make('favicon_path')
@@ -29,7 +31,7 @@ class SiteSettingResource extends Resource
                 ])
                 ->columns(2),
 
-            Forms\Components\Section::make('Hero')
+            FormSection::make('Hero')
                 ->schema([
                     Forms\Components\TextInput::make('hero_title')->maxLength(255),
                     Forms\Components\Textarea::make('hero_subtitle')->rows(3),
@@ -46,7 +48,7 @@ class SiteSettingResource extends Resource
                 ])
                 ->columns(2),
 
-            Forms\Components\Section::make('Social Links')
+            FormSection::make('Social Links')
                 ->schema([
                     Forms\Components\Repeater::make('social_links')
                         ->schema([
