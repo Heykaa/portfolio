@@ -4,11 +4,16 @@ namespace App\Filament\Resources\SiteSettings;
 
 use App\Filament\Resources\SiteSettings\Pages\ManageSiteSettings;
 use App\Models\SiteSetting;
-use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section as FormSection;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class SiteSettingResource extends Resource
 {
@@ -23,8 +28,8 @@ class SiteSettingResource extends Resource
         return $schema->components([
             FormSection::make('Brand')
                 ->schema([
-                    Forms\Components\TextInput::make('brand_name')->maxLength(255),
-                    Forms\Components\FileUpload::make('favicon_path')
+                    TextInput::make('brand_name')->maxLength(255),
+                    FileUpload::make('favicon_path')
                         ->disk('public')
                         ->directory('site')
                         ->image(),
@@ -33,45 +38,43 @@ class SiteSettingResource extends Resource
 
             FormSection::make('Hero')
                 ->schema([
-                    Forms\Components\TextInput::make('hero_title')->maxLength(255),
-                    Forms\Components\Textarea::make('hero_subtitle')->rows(3),
-                    Forms\Components\TextInput::make('hero_cta_text')->maxLength(255),
-                    Forms\Components\TextInput::make('hero_cta_url')->maxLength(255),
-                    Forms\Components\FileUpload::make('hero_image_path')
+                    TextInput::make('hero_title')->maxLength(255),
+                    Textarea::make('hero_subtitle')->rows(3),
+                    TextInput::make('hero_cta_text')->maxLength(255),
+                    TextInput::make('hero_cta_url')->maxLength(255),
+                    FileUpload::make('hero_image_path')
                         ->disk('public')
                         ->directory('site/hero')
                         ->image(),
-                    Forms\Components\FileUpload::make('hero_video_path')
+                    FileUpload::make('hero_video_path')
                         ->disk('public')
                         ->directory('site/hero')
                         ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
                 ])
                 ->columns(2),
 
-            /*
             FormSection::make('Social Links')
                 ->schema([
-                    Forms\Components\Repeater::make('social_links')
+                    Repeater::make('social_links')
                         ->schema([
-                            Forms\Components\TextInput::make('label')->required(),
-                            Forms\Components\TextInput::make('url')->required(),
+                            TextInput::make('label')->required(),
+                            TextInput::make('url')->required(),
                         ])
                         ->columns(2),
                 ]),
-            */
         ]);
     }
 
-    public static function table(Tables\Table $table): Tables\Table
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('brand_name')->searchable(),
-                Tables\Columns\TextColumn::make('hero_title')->searchable(),
-                Tables\Columns\TextColumn::make('updated_at')->since(),
+                TextColumn::make('brand_name')->searchable(),
+                TextColumn::make('hero_title')->searchable(),
+                TextColumn::make('updated_at')->since(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
             ]);
     }
 
