@@ -37,9 +37,9 @@ class DatabaseSeeder extends Seeder
                 'hero_cta_text' => 'VIEW PROJECTS',
                 'hero_cta_url' => '#work',
                 'social_links' => [
-                    'twitter' => 'https://twitter.com',
-                    'linkedin' => 'https://linkedin.com',
-                    'github' => 'https://github.com',
+                    ['label' => 'Twitter', 'url' => 'https://twitter.com'],
+                    ['label' => 'LinkedIn', 'url' => 'https://linkedin.com'],
+                    ['label' => 'GitHub', 'url' => 'https://github.com'],
                 ],
             ]
         );
