@@ -18,7 +18,7 @@ class SiteSettingResource extends Resource
 
     public static function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
     {
-        return $schema->schema([
+        return $schema->components([
             Forms\Components\Section::make('Brand')
                 ->schema([
                     Forms\Components\TextInput::make('brand_name')->maxLength(255),
