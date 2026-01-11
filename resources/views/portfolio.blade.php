@@ -80,9 +80,9 @@
         <div class="text-4xl font-black tracking-tighter">{{ $settings->brand_name }}</div>
         <div class="flex gap-6">
             @if($settings->social_links)
-                @foreach($settings->social_links as $platform => $url)
-                    <a href="{{ $url }}" target="_blank"
-                        class="hover:text-white/50 transition-colors uppercase text-sm tracking-widest">{{ $platform }}</a>
+                @foreach($settings->social_links as $link)
+                    <a href="{{ $link['url'] }}" target="_blank"
+                        class="hover:text-white/50 transition-colors uppercase text-sm tracking-widest">{{ $link['label'] ?? 'Link' }}</a>
                 @endforeach
             @endif
         </div>
