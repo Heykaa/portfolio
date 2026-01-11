@@ -48,6 +48,7 @@ class SiteSettingResource extends Resource
                 ])
                 ->columns(2),
 
+            /*
             FormSection::make('Social Links')
                 ->schema([
                     Forms\Components\Repeater::make('social_links')
@@ -57,6 +58,7 @@ class SiteSettingResource extends Resource
                         ])
                         ->columns(2),
                 ]),
+            */
         ]);
     }
 
