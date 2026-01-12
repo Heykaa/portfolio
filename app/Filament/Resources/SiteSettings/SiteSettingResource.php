@@ -5,7 +5,7 @@ namespace App\Filament\Resources\SiteSettings;
 use App\Filament\Resources\SiteSettings\Pages\ManageSiteSettings;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -22,6 +22,14 @@ class SiteSettingResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Site Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+
+    /**
+     * ✅ Singleton: jangan bagi create banyak record
+     */
+    public static function canCreate(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -55,12 +63,15 @@ class SiteSettingResource extends Resource
 
             FormSection::make('Social Links')
                 ->schema([
-                    Repeater::make('social_links')
-                        ->schema([
-                            TextInput::make('label')->required(),
-                            TextInput::make('url')->required(),
-                        ])
-                        ->columns(2),
+                    /**
+                     * ✅ KeyValue sesuai untuk JSON object:
+                     * { twitter: url, linkedin: url, ... }
+                     */
+                    KeyValue::make('social_links')
+                        ->keyLabel('Platform')
+                        ->valueLabel('URL')
+                        ->addButtonLabel('Add link')
+                        ->reorderable(),
                 ]),
         ]);
     }
