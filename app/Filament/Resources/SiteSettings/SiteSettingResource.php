@@ -11,7 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section as FormSection;
-use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -23,9 +23,6 @@ class SiteSettingResource extends Resource
     protected static ?string $navigationLabel = 'Site Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 
-    /**
-     * ✅ Singleton: jangan bagi create banyak record
-     */
     public static function canCreate(): bool
     {
         return false;
@@ -50,10 +47,12 @@ class SiteSettingResource extends Resource
                     Textarea::make('hero_subtitle')->rows(3),
                     TextInput::make('hero_cta_text')->maxLength(255),
                     TextInput::make('hero_cta_url')->maxLength(255),
+
                     FileUpload::make('hero_image_path')
                         ->disk('public')
                         ->directory('site/hero')
                         ->image(),
+
                     FileUpload::make('hero_video_path')
                         ->disk('public')
                         ->directory('site/hero')
@@ -63,10 +62,6 @@ class SiteSettingResource extends Resource
 
             FormSection::make('Social Links')
                 ->schema([
-                    /**
-                     * ✅ KeyValue sesuai untuk JSON object:
-                     * { twitter: url, linkedin: url, ... }
-                     */
                     KeyValue::make('social_links')
                         ->keyLabel('Platform')
                         ->valueLabel('URL')
@@ -85,7 +80,10 @@ class SiteSettingResource extends Resource
                 TextColumn::make('updated_at')->since(),
             ])
             ->actions([
-                EditAction::make(),
+                Action::make('edit')
+                    ->label('Edit')
+                    ->icon('heroicon-o-pencil-square')
+                    ->url(fn (SiteSetting $record) => static::getUrl('edit', ['record' => $record])),
             ]);
     }
 
@@ -93,6 +91,7 @@ class SiteSettingResource extends Resource
     {
         return [
             'index' => ManageSiteSettings::route('/'),
+            'edit'  => Pages\EditSiteSetting::route('/{record}/edit'),
         ];
     }
 }
