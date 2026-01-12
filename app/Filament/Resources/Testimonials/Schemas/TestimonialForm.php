@@ -34,16 +34,17 @@ class TestimonialForm
             TextInput::make('role')
                 ->default(null),
 
-            FileUpload::make('avatar_path')
-                ->label('Avatar')
-                ->image()
-                ->disk('public')
-                ->directory('testimonials')
-                ->visibility('public')
-                ->avatar()
-                ->imageEditor()
-                ->maxSize(2048)
-                ->required(),
+FileUpload::make('avatar_path')
+    ->label('Avatar')
+    ->image()
+    ->disk('local')
+    ->directory('uploads/testimonials')
+    ->visibility('private')
+    ->avatar()
+    ->imageEditor()
+    ->maxSize(2048)
+    ->required();
+
 
             TextInput::make('sort_order')
                 ->numeric()
