@@ -31,9 +31,10 @@ class SiteSettingResource extends Resource
                     TextInput::make('brand_name')
                         ->maxLength(255),
 
+                    // favicon: jangan paksa ->image(), .ico selalu fail
                     FileUpload::make('favicon_path')
                         ->label('Favicon (.ico / .png)')
-                        ->disk('public')
+                        ->disk('uploads')
                         ->directory('site')
                         ->visibility('public')
                         ->preserveFilenames()
@@ -45,20 +46,27 @@ class SiteSettingResource extends Resource
                             'image/png',
                             'image/svg+xml',
                         ])
-                        ->maxSize(256),
+                        ->maxSize(256), // KB
                 ])
                 ->columns(2),
 
             FormSection::make('Hero')
                 ->schema([
-                    TextInput::make('hero_title')->maxLength(255),
-                    Textarea::make('hero_subtitle')->rows(3),
-                    TextInput::make('hero_cta_text')->maxLength(255),
-                    TextInput::make('hero_cta_url')->maxLength(255),
+                    TextInput::make('hero_title')
+                        ->maxLength(255),
+
+                    Textarea::make('hero_subtitle')
+                        ->rows(3),
+
+                    TextInput::make('hero_cta_text')
+                        ->maxLength(255),
+
+                    TextInput::make('hero_cta_url')
+                        ->maxLength(255),
 
                     FileUpload::make('hero_image_path')
                         ->label('Hero Image')
-                        ->disk('public')
+                        ->disk('uploads')
                         ->directory('site/hero')
                         ->visibility('public')
                         ->preserveFilenames()
@@ -66,11 +74,11 @@ class SiteSettingResource extends Resource
                         ->imageEditor()
                         ->downloadable()
                         ->openable()
-                        ->maxSize(4096),
+                        ->maxSize(4096), // 4MB
 
                     FileUpload::make('hero_video_path')
                         ->label('Hero Video (mp4/webm/mov)')
-                        ->disk('public')
+                        ->disk('uploads')
                         ->directory('site/hero')
                         ->visibility('public')
                         ->preserveFilenames()
@@ -81,7 +89,7 @@ class SiteSettingResource extends Resource
                             'video/webm',
                             'video/quicktime',
                         ])
-                        ->maxSize(20480),
+                        ->maxSize(20480), // 20MB
                 ])
                 ->columns(2),
 
