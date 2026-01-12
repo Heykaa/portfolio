@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\CaseStudies\Schemas;
 
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Schemas\Schema;
 
 class CaseStudyForm
@@ -21,9 +21,7 @@ class CaseStudyForm
                 ->required()
                 ->searchable()
                 ->preload()
-                ->hidden(fn ($livewire) =>
-                    $livewire instanceof \Filament\Resources\RelationManagers\RelationManager
-                ),
+                ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
 
             TextInput::make('title')
                 ->required(),
@@ -36,16 +34,15 @@ class CaseStudyForm
                 ->default(null)
                 ->columnSpanFull(),
 
-FileUpload::make('image_path')
-    ->label('Case Study Image')
-    ->image()
-    ->disk('local')
-    ->directory('uploads/case-studies')
-    ->visibility('private')
-    ->imageEditor()
-    ->maxSize(4096)
-    ->required();
-
+            FileUpload::make('image_path')
+                ->label('Case Study Image')
+                ->image()
+                ->disk('local')
+                ->directory('uploads/case-studies')
+                ->visibility('private')
+                ->imageEditor()
+                ->maxSize(4096)
+                ->required(),
 
             TextInput::make('url')
                 ->default(null),
