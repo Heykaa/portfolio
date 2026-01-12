@@ -26,23 +26,16 @@ class SiteSettingResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-
-            /**
-             * ---------------------------------------------------------
-             * BRAND
-             * ---------------------------------------------------------
-             */
             FormSection::make('Brand')
                 ->schema([
                     TextInput::make('brand_name')
-                        ->label('Brand Name')
                         ->maxLength(255),
 
                     FileUpload::make('favicon_path')
-                        ->label('Favicon (.ico / .png / .svg)')
-                        ->disk('local')
-                        ->directory('uploads/site')
-                        ->visibility('private')
+                        ->label('Favicon (.ico / .png)')
+                        ->disk('public')
+                        ->directory('site')
+                        ->visibility('public')
                         ->preserveFilenames()
                         ->downloadable()
                         ->openable()
@@ -52,50 +45,34 @@ class SiteSettingResource extends Resource
                             'image/png',
                             'image/svg+xml',
                         ])
-                        ->maxSize(256), // KB
+                        ->maxSize(256),
                 ])
                 ->columns(2),
 
-            /**
-             * ---------------------------------------------------------
-             * HERO SECTION
-             * ---------------------------------------------------------
-             */
             FormSection::make('Hero')
                 ->schema([
-                    TextInput::make('hero_title')
-                        ->label('Hero Title')
-                        ->maxLength(255),
-
-                    Textarea::make('hero_subtitle')
-                        ->label('Hero Subtitle')
-                        ->rows(3),
-
-                    TextInput::make('hero_cta_text')
-                        ->label('CTA Text')
-                        ->maxLength(255),
-
-                    TextInput::make('hero_cta_url')
-                        ->label('CTA URL')
-                        ->maxLength(255),
+                    TextInput::make('hero_title')->maxLength(255),
+                    Textarea::make('hero_subtitle')->rows(3),
+                    TextInput::make('hero_cta_text')->maxLength(255),
+                    TextInput::make('hero_cta_url')->maxLength(255),
 
                     FileUpload::make('hero_image_path')
                         ->label('Hero Image')
-                        ->image()
-                        ->disk('local')
-                        ->directory('uploads/site/hero')
-                        ->visibility('private')
+                        ->disk('public')
+                        ->directory('site/hero')
+                        ->visibility('public')
                         ->preserveFilenames()
+                        ->image()
                         ->imageEditor()
                         ->downloadable()
                         ->openable()
-                        ->maxSize(4096), // 4MB
+                        ->maxSize(4096),
 
                     FileUpload::make('hero_video_path')
-                        ->label('Hero Video (mp4 / webm / mov)')
-                        ->disk('local')
-                        ->directory('uploads/site/hero')
-                        ->visibility('private')
+                        ->label('Hero Video (mp4/webm/mov)')
+                        ->disk('public')
+                        ->directory('site/hero')
+                        ->visibility('public')
                         ->preserveFilenames()
                         ->downloadable()
                         ->openable()
@@ -104,23 +81,16 @@ class SiteSettingResource extends Resource
                             'video/webm',
                             'video/quicktime',
                         ])
-                        ->maxSize(20480), // 20MB
+                        ->maxSize(20480),
                 ])
                 ->columns(2),
 
-            /**
-             * ---------------------------------------------------------
-             * SOCIAL LINKS
-             * ---------------------------------------------------------
-             */
             FormSection::make('Social Links')
                 ->schema([
                     Repeater::make('social_links')
                         ->schema([
-                            TextInput::make('label')
-                                ->required(),
-                            TextInput::make('url')
-                                ->required(),
+                            TextInput::make('label')->required(),
+                            TextInput::make('url')->required(),
                         ])
                         ->columns(2),
                 ]),
