@@ -43,7 +43,7 @@ FileUpload::make('avatar_path')
     ->avatar()
     ->imageEditor()
     ->maxSize(2048)
-    ->required();
+    ->required(),
 
 
             TextInput::make('sort_order')
