@@ -44,7 +44,7 @@ FileUpload::make('image_path')
     ->visibility('private')
     ->imageEditor()
     ->maxSize(4096)
-    ->required();
+    ->required(),
 
 
             TextInput::make('url')
