@@ -5,40 +5,48 @@ cd /var/www/html
 
 php -v
 
+# Ensure folders exist
 mkdir -p \
   storage/framework/cache/data \
   storage/framework/sessions \
   storage/framework/views \
-  bootstrap/cache || true
+  bootstrap/cache \
+  public/js \
+  public/css \
+  public/storage || true
 
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R 775 storage bootstrap/cache || true
+# Fix permissions (important for Render)
+chown -R www-data:www-data storage bootstrap/cache public || true
+chmod -R 775 storage bootstrap/cache public || true
 
-rm -rf storage/framework/cache/* storage/framework/views/* bootstrap/cache/* || true
-mkdir -p storage/framework/cache/data storage/framework/views bootstrap/cache || true
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R 775 storage bootstrap/cache || true
+# Clear old caches (avoid stale permission files)
+rm -rf storage/framework/views/* bootstrap/cache/* || true
 
-artisan() {
-  su -s /bin/bash www-data -c "php artisan $*" || true
-}
-
+# Ensure APP_KEY exists
 if [ -z "$APP_KEY" ]; then
   echo "APP_KEY is missing. Generating..."
-  artisan "key:generate --force"
+  php artisan key:generate --force || true
 fi
 
-artisan "optimize:clear"
-artisan "storage:link"
-artisan "migrate --force"
-artisan "db:seed --force"
+# Clear caches first
+php artisan optimize:clear || true
 
-# Filament assets (safe to run)
-artisan "filament:assets"
+# ✅ Run these as root to avoid permission denied on public/
+php artisan storage:link || true
+php artisan filament:assets || true
 
-artisan "config:cache"
-artisan "route:cache"
-artisan "view:cache"
+# Run migrations & seed
+php artisan migrate --force || true
+php artisan db:seed --force || true
+
+# Re-cache
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
+
+# Final permission normalize
+chown -R www-data:www-data storage bootstrap/cache public || true
+chmod -R 775 storage bootstrap/cache public || true
 
 php-fpm -D
 nginx -g "daemon off;"
