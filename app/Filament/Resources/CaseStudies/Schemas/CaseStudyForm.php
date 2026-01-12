@@ -36,15 +36,16 @@ class CaseStudyForm
                 ->default(null)
                 ->columnSpanFull(),
 
-            FileUpload::make('image_path')
-                ->label('Case Study Image')
-                ->image()
-                ->disk('public')
-                ->directory('case-studies')
-                ->visibility('public')
-                ->imageEditor()
-                ->maxSize(4096)
-                ->required(),
+FileUpload::make('image_path')
+    ->label('Case Study Image')
+    ->image()
+    ->disk('local')
+    ->directory('uploads/case-studies')
+    ->visibility('private')
+    ->imageEditor()
+    ->maxSize(4096)
+    ->required();
+
 
             TextInput::make('url')
                 ->default(null),
