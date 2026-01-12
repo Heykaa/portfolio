@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\Testimonials\Schemas;
 
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 
 class TestimonialForm
@@ -20,9 +20,7 @@ class TestimonialForm
                 ->required()
                 ->searchable()
                 ->preload()
-                ->hidden(fn ($livewire) =>
-                    $livewire instanceof \Filament\Resources\RelationManagers\RelationManager
-                ),
+                ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
 
             Textarea::make('quote')
                 ->required()
@@ -34,22 +32,23 @@ class TestimonialForm
             TextInput::make('role')
                 ->default(null),
 
-FileUpload::make('avatar_path')
-    ->label('Avatar')
-    ->image()
-    ->disk('local')
-    ->directory('uploads/testimonials')
-    ->visibility('private')
-    ->avatar()
-    ->imageEditor()
-    ->maxSize(2048)
-    ->required(),
-
+            FileUpload::make('avatar_path')
+                ->label('Avatar')
+                ->image()
+                ->disk('public')
+                ->directory('testimonials')
+                ->visibility('public')
+                ->preserveFilenames()
+                ->avatar()
+                ->imageEditor()
+                ->downloadable()
+                ->openable()
+                ->maxSize(2048),
 
             TextInput::make('sort_order')
+                ->required()
                 ->numeric()
-                ->default(0)
-                ->required(),
+                ->default(0),
 
             Toggle::make('enabled')
                 ->default(true)
