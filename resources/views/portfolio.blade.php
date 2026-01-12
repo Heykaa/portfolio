@@ -12,9 +12,10 @@
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&display=swap"
             rel="stylesheet">
 
-        @if($settings->favicon_path)
-            <link rel="icon" href="{{ asset('storage/' . $settings->favicon_path) }}">
-        @endif
+   @if($settings->favicon_path)
+    <link rel="icon" href="{{ \Illuminate\Support\Facades\Storage::disk('uploads')->url($settings->favicon_path) }}">
+@endif
+
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
