@@ -4,14 +4,14 @@ namespace App\Filament\Resources\SiteSettings;
 
 use App\Filament\Resources\SiteSettings\Pages\ManageSiteSettings;
 use App\Models\SiteSetting;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Section as FormSection;
-use Filament\Actions\EditAction;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -28,28 +28,70 @@ class SiteSettingResource extends Resource
         return $schema->components([
             FormSection::make('Brand')
                 ->schema([
-                    TextInput::make('brand_name')->maxLength(255),
+                    TextInput::make('brand_name')
+                        ->maxLength(255),
+
+                    // ✅ favicon: jangan paksa ->image(), .ico selalu fail
                     FileUpload::make('favicon_path')
+                        ->label('Favicon (.ico / .png)')
                         ->disk('public')
                         ->directory('site')
-                        ->image(),
+                        ->visibility('public')
+                        ->preserveFilenames()
+                        ->downloadable()
+                        ->openable()
+                        ->acceptedFileTypes([
+                            'image/x-icon',
+                            'image/vnd.microsoft.icon',
+                            'image/png',
+                            'image/svg+xml',
+                        ])
+                        ->maxSize(256), // KB
                 ])
                 ->columns(2),
 
             FormSection::make('Hero')
                 ->schema([
-                    TextInput::make('hero_title')->maxLength(255),
-                    Textarea::make('hero_subtitle')->rows(3),
-                    TextInput::make('hero_cta_text')->maxLength(255),
-                    TextInput::make('hero_cta_url')->maxLength(255),
+                    TextInput::make('hero_title')
+                        ->maxLength(255),
+
+                    Textarea::make('hero_subtitle')
+                        ->rows(3),
+
+                    TextInput::make('hero_cta_text')
+                        ->maxLength(255),
+
+                    TextInput::make('hero_cta_url')
+                        ->maxLength(255),
+
+                    // ✅ hero image
                     FileUpload::make('hero_image_path')
+                        ->label('Hero Image')
                         ->disk('public')
                         ->directory('site/hero')
-                        ->image(),
+                        ->visibility('public')
+                        ->preserveFilenames()
+                        ->image()
+                        ->imageEditor() // optional tapi best
+                        ->downloadable()
+                        ->openable()
+                        ->maxSize(4096), // 4MB
+
+                    // ✅ hero video
                     FileUpload::make('hero_video_path')
+                        ->label('Hero Video (mp4/webm/mov)')
                         ->disk('public')
                         ->directory('site/hero')
-                        ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
+                        ->visibility('public')
+                        ->preserveFilenames()
+                        ->downloadable()
+                        ->openable()
+                        ->acceptedFileTypes([
+                            'video/mp4',
+                            'video/webm',
+                            'video/quicktime',
+                        ])
+                        ->maxSize(20480), // 20MB
                 ])
                 ->columns(2),
 
