@@ -39,16 +39,19 @@
             @foreach($section->works->where('enabled', true) as $work)
                 <a href="{{ $work->url ?: '#' }}"
                     class="project-card group relative bg-white/5 rounded-sm overflow-hidden
-                                                              transition-all duration-500 ease-out
-                                                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
+                        transition-all duration-500 ease-out
+                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-400/50 focus-visible:ring-offset-4 focus-visible:ring-offset-black"
                     style="width: clamp(350px, 35vw, 550px); aspect-ratio: 3/4; flex-shrink: 0;" data-project-card
                     aria-label="View project: {{ $work->title }}">
 
                     {{-- Project Image --}}
                     @if($work->image_path)
-                        <img src="{{ asset('storage/' . $work->image_path) }}" alt="{{ $work->title }}"
+                        <img
+                            src="{{ \Illuminate\Support\Facades\Storage::disk('uploads')->url($work->image_path) }}"
+                            alt="{{ $work->title }}"
                             class="project-card-image absolute inset-0 w-full h-full object-cover grayscale opacity-70
-                                                                                                                            transition-all duration-700 ease-out" loading="lazy">
+                                transition-all duration-700 ease-out"
+                            loading="lazy">
                     @else
                         <div class="absolute inset-0 flex items-center justify-center text-white/10 text-[15rem] font-black">
                             {{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}
@@ -64,8 +67,7 @@
                         @if($work->tags)
                             <div class="flex gap-3 flex-wrap">
                                 @foreach($work->tags as $tag)
-                                    <span
-                                        class="text-[0.6rem] tracking-[0.3em] uppercase text-white/50 border border-white/20 px-3 py-1">
+                                    <span class="text-[0.6rem] tracking-[0.3em] uppercase text-white/50 border border-white/20 px-3 py-1">
                                         {{ $tag }}
                                     </span>
                                 @endforeach
@@ -85,8 +87,7 @@
                         @endif
 
                         {{-- Arrow Indicator --}}
-                        <div
-                            class="flex items-center gap-4 mt-2 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300">
+                        <div class="flex items-center gap-4 mt-2 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300">
                             <span class="text-xs tracking-[0.3em] uppercase text-green-400">Explore</span>
                             <span class="w-8 h-[1px] bg-green-400"></span>
                         </div>
