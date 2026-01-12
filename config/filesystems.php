@@ -4,26 +4,14 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
-    'cloud' => env('FILESYSTEM_CLOUD', 's3'),
-
     'disks' => [
 
-        /*
-        |--------------------------------------------------------------------------
-        | Local Disk (IMPORTANT for Livewire temp uploads)
-        |--------------------------------------------------------------------------
-        */
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app'), // ✅ STANDARD (Livewire temp uses this)
+            'root' => storage_path('app/private'),
             'throw' => false,
         ],
 
-        /*
-        |--------------------------------------------------------------------------
-        | Public Disk (for images uploaded via Filament)
-        |--------------------------------------------------------------------------
-        */
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
@@ -32,11 +20,18 @@ return [
             'throw' => false,
         ],
 
-        // If you have others (s3, etc.) keep as-is.
-    ],
+        /**
+         * Uploads disk (NO NEED storage:link)
+         * Files served via /uploads/{path} route.
+         */
+        'uploads' => [
+            'driver' => 'local',
+            'root' => storage_path('app/uploads'),
+            'url' => env('APP_URL') . '/uploads',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
 
-    'links' => [
-        public_path('storage') => storage_path('app/public'),
     ],
 
 ];
