@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\SiteSettings\Pages;
 
 use App\Filament\Resources\SiteSettings\SiteSettingResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ManageSiteSettings extends ListRecords
@@ -12,8 +11,7 @@ class ManageSiteSettings extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        // ✅ Singleton: tak perlu Create
+        return [];
     }
 }
