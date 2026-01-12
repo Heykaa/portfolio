@@ -1,5 +1,6 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import SplitType from 'split-type';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -30,21 +31,6 @@ export const initGsapAnimations = (lenis) => {
     // 2) Hero Reveal (guarded)
     const splitTargets = document.querySelectorAll('.split-text');
     const heroBg = document.querySelector('#hero-bg');
-if (heroBg) {
-  heroTimeline.from(heroBg, { scale: 1.5, duration: 2.5, ease: 'power2.out' }, 0);
-
-  gsap.to(heroBg, {
-    yPercent: 30,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '#hero',
-      start: 'top top',
-      end: 'bottom top',
-      scrub: true
-    }
-  });
-}
-
 
     const heroTimeline = gsap.timeline();
 
