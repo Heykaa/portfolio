@@ -36,15 +36,16 @@ class WorkForm
                 ->default(null)
                 ->columnSpanFull(),
 
-            FileUpload::make('image_path')
-                ->label('Work Image')
-                ->image()
-                ->disk('public')
-                ->directory('works')
-                ->visibility('public')
-                ->imageEditor()
-                ->maxSize(4096)
-                ->required(),
+FileUpload::make('image_path')
+    ->label('Work Image')
+    ->image()
+    ->disk('local')
+    ->directory('uploads/works')
+    ->visibility('private')
+    ->imageEditor()
+    ->maxSize(4096)
+    ->required();
+
 
             TextInput::make('url')
                 ->default(null),
