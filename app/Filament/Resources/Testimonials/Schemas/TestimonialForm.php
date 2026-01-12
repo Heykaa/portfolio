@@ -13,46 +13,47 @@ class TestimonialForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
-            Select::make('section_id')
-                ->relationship('section', 'title')
-                ->getOptionLabelFromRecordUsing(fn ($record) => $record->title ?? $record->key)
-                ->required()
-                ->searchable()
-                ->preload()
-                ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
+        return $schema
+            ->components([
+                Select::make('section_id')
+                    ->relationship('section', 'title')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->title ?? $record->key)
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
 
-            Textarea::make('quote')
-                ->required()
-                ->columnSpanFull(),
+                Textarea::make('quote')
+                    ->required()
+                    ->columnSpanFull(),
 
-            TextInput::make('name')
-                ->required(),
+                TextInput::make('name')
+                    ->required(),
 
-            TextInput::make('role')
-                ->default(null),
+                TextInput::make('role')
+                    ->default(null),
 
-            FileUpload::make('avatar_path')
-                ->label('Avatar')
-                ->image()
-                ->disk('public')
-                ->directory('testimonials')
-                ->visibility('public')
-                ->preserveFilenames()
-                ->avatar()
-                ->imageEditor()
-                ->downloadable()
-                ->openable()
-                ->maxSize(2048),
+                FileUpload::make('avatar_path')
+                    ->label('Avatar')
+                    ->image()
+                    ->disk('uploads')
+                    ->directory('testimonials')
+                    ->visibility('public')
+                    ->preserveFilenames()
+                    ->avatar()
+                    ->imageEditor()
+                    ->downloadable()
+                    ->openable()
+                    ->maxSize(4096),
 
-            TextInput::make('sort_order')
-                ->required()
-                ->numeric()
-                ->default(0),
+                TextInput::make('sort_order')
+                    ->required()
+                    ->numeric()
+                    ->default(0),
 
-            Toggle::make('enabled')
-                ->default(true)
-                ->inline(false),
-        ]);
+                Toggle::make('enabled')
+                    ->default(true)
+                    ->inline(false),
+            ]);
     }
 }
