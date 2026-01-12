@@ -6,69 +6,67 @@ use App\Filament\Resources\SiteSettings\Pages\ManageSiteSettings;
 use App\Models\SiteSetting;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section as FormSection;
-use Filament\Tables\Actions\Action;
+use Filament\Tables;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class SiteSettingResource extends Resource
 {
     protected static ?string $model = SiteSetting::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static ?string $navigationGroup = 'Settings';
     protected static ?string $navigationLabel = 'Site Settings';
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $pluralLabel = 'Site Settings';
 
     public static function canCreate(): bool
     {
         return false;
     }
 
-    public static function form(Schema $schema): Schema
+    public static function canDelete(Model $record): bool
     {
-        return $schema->components([
-            FormSection::make('Brand')
-                ->schema([
-                    TextInput::make('brand_name')->maxLength(255),
-                    FileUpload::make('favicon_path')
-                        ->disk('public')
-                        ->directory('site')
-                        ->image(),
-                ])
-                ->columns(2),
+        return false;
+    }
 
-            FormSection::make('Hero')
-                ->schema([
-                    TextInput::make('hero_title')->maxLength(255),
-                    Textarea::make('hero_subtitle')->rows(3),
-                    TextInput::make('hero_cta_text')->maxLength(255),
-                    TextInput::make('hero_cta_url')->maxLength(255),
+    public static function form(\Filament\Forms\Form $form): \Filament\Forms\Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('brand_name')->required()->maxLength(255),
 
-                    FileUpload::make('hero_image_path')
-                        ->disk('public')
-                        ->directory('site/hero')
-                        ->image(),
+                TextInput::make('hero_title')->required()->maxLength(255),
+                TextInput::make('hero_subtitle')->required()->maxLength(255),
 
-                    FileUpload::make('hero_video_path')
-                        ->disk('public')
-                        ->directory('site/hero')
-                        ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/quicktime']),
-                ])
-                ->columns(2),
+                TextInput::make('hero_cta_text')->required()->maxLength(255),
+                TextInput::make('hero_cta_url')->required()->maxLength(255),
 
-            FormSection::make('Social Links')
-                ->schema([
-                    KeyValue::make('social_links')
-                        ->keyLabel('Platform')
-                        ->valueLabel('URL')
-                        ->addButtonLabel('Add link')
-                        ->reorderable(),
-                ]),
-        ]);
+                FileUpload::make('hero_image_path')
+                    ->label('Hero Image')
+                    ->image()
+                    ->disk('public')
+                    ->directory('hero')
+                    ->visibility('public'),
+
+                FileUpload::make('hero_video_path')
+                    ->label('Hero Video (MP4)')
+                    ->disk('public')
+                    ->directory('hero')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['video/mp4']),
+
+                KeyValue::make('social_links')
+                    ->keyLabel('Platform')
+                    ->valueLabel('URL')
+                    ->addable()
+                    ->deletable()
+                    ->reorderable(),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -79,11 +77,9 @@ class SiteSettingResource extends Resource
                 TextColumn::make('hero_title')->searchable(),
                 TextColumn::make('updated_at')->since(),
             ])
-            ->actions([
-                Action::make('edit')
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil-square')
-                    ->url(fn (SiteSetting $record) => static::getUrl('edit', ['record' => $record])),
+            // Filament v4: guna recordActions, bukan actions()
+            ->recordActions([
+                EditAction::make(),
             ]);
     }
 
@@ -91,7 +87,6 @@ class SiteSettingResource extends Resource
     {
         return [
             'index' => ManageSiteSettings::route('/'),
-            'edit'  => Pages\EditSiteSetting::route('/{record}/edit'),
         ];
     }
 }
