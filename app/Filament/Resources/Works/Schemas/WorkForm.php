@@ -14,49 +14,50 @@ class WorkForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
-            Select::make('section_id')
-                ->relationship('section', 'title')
-                ->getOptionLabelFromRecordUsing(fn ($record) => $record->title ?? $record->key)
-                ->required()
-                ->searchable()
-                ->preload()
-                ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
+        return $schema
+            ->components([
+                Select::make('section_id')
+                    ->relationship('section', 'title')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->title ?? $record->key)
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn ($livewire) => $livewire instanceof \Filament\Resources\RelationManagers\RelationManager),
 
-            TextInput::make('title')
-                ->required(),
+                TextInput::make('title')
+                    ->required(),
 
-            Textarea::make('caption')
-                ->default(null)
-                ->columnSpanFull(),
+                Textarea::make('caption')
+                    ->default(null)
+                    ->columnSpanFull(),
 
-            TagsInput::make('tags')
-                ->default(null)
-                ->columnSpanFull(),
+                TagsInput::make('tags')
+                    ->default(null)
+                    ->columnSpanFull(),
 
-            FileUpload::make('image_path')
-                ->label('Work Image')
-                ->image()
-                ->disk('public')
-                ->directory('works')
-                ->visibility('public')
-                ->preserveFilenames()
-                ->imageEditor()
-                ->downloadable()
-                ->openable()
-                ->maxSize(4096),
+                FileUpload::make('image_path')
+                    ->label('Work Image')
+                    ->image()
+                    ->disk('uploads')
+                    ->directory('works')
+                    ->visibility('public')
+                    ->preserveFilenames()
+                    ->imageEditor()
+                    ->downloadable()
+                    ->openable()
+                    ->maxSize(4096),
 
-            TextInput::make('url')
-                ->default(null),
+                TextInput::make('url')
+                    ->default(null),
 
-            TextInput::make('sort_order')
-                ->required()
-                ->numeric()
-                ->default(0),
+                TextInput::make('sort_order')
+                    ->required()
+                    ->numeric()
+                    ->default(0),
 
-            Toggle::make('enabled')
-                ->default(true)
-                ->inline(false),
-        ]);
+                Toggle::make('enabled')
+                    ->default(true)
+                    ->inline(false),
+            ]);
     }
 }
