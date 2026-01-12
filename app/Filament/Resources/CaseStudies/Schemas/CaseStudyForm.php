@@ -37,20 +37,22 @@ class CaseStudyForm
             FileUpload::make('image_path')
                 ->label('Case Study Image')
                 ->image()
-                ->disk('local')
-                ->directory('uploads/case-studies')
-                ->visibility('private')
+                ->disk('public')
+                ->directory('case-studies')
+                ->visibility('public')
+                ->preserveFilenames()
                 ->imageEditor()
-                ->maxSize(4096)
-                ->required(),
+                ->downloadable()
+                ->openable()
+                ->maxSize(4096),
 
             TextInput::make('url')
                 ->default(null),
 
             TextInput::make('sort_order')
+                ->required()
                 ->numeric()
-                ->default(0)
-                ->required(),
+                ->default(0),
 
             Toggle::make('enabled')
                 ->default(true)
